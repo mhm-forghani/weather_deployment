@@ -5,13 +5,13 @@ services:
     ports:
       - "8000:8000"
     restart: unless-stopped
+    env_file:
+      - .env.prod
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file:
-      - .env.prod
 
   db:
     image: postgres:16
@@ -31,13 +31,98 @@ services:
   redis:
     image: redis:7
     restart: unless-stopped
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
-    volumes:
-      - redis_data:/data
+
+  worker-weather:
+    image: ghcr.io/mhm-forghani/weather-api:latest
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    command:
+      - uv
+      - run
+      - celery
+      - -A
+      - app.celery_app
+      - worker
+      - --concurrency=4
+      - -Q
+      - celery
+      - --loglevel=info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker-report:
+    image: ghcr.io/mhm-forghani/weather-api:latest
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    command:
+      - uv
+      - run
+      - celery
+      - -A
+      - app.celery_app
+      - worker
+      - --concurrency=4
+      - -Q
+      - report_queue
+      - --loglevel=info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker-email:
+    image: ghcr.io/mhm-forghani/weather-api:latest
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    command:
+      - uv
+      - run
+      - celery
+      - -A
+      - app.celery_app
+      - worker
+      - --concurrency=4
+      - -Q
+      - email_queue
+      - --loglevel=info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  beat:
+    image: ghcr.io/mhm-forghani/weather-api:latest
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    command:
+      - uv
+      - run
+      - celery
+      - -A
+      - app.celery_app
+      - beat
+      - --loglevel=info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_data:
