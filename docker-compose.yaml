@@ -9,6 +9,9 @@ services:
       db:
         condition: service_healthy
         required: true
+      migrate:
+        condition: service_completed_successfully
+        required: true
       redis:
         condition: service_healthy
         required: true
@@ -34,6 +37,9 @@ services:
       - beat
       - --loglevel=info
     depends_on:
+      migrate:
+        condition: service_completed_successfully
+        required: true
       redis:
         condition: service_healthy
         required: true
@@ -65,6 +71,24 @@ services:
         target: /var/lib/postgresql/data
         type: volume
         volume: {}
+  migrate:
+    command:
+      - uv
+      - run
+      - alembic
+      - upgrade
+      - head
+    depends_on:
+      db:
+        condition: service_healthy
+        required: true
+    env_file:
+      - path: .env.prod
+        required: true
+    image: ghcr.io/mhm-forghani/weather-api:latest
+    networks:
+      default: null
+    restart: "no"
   redis:
     healthcheck:
       interval: 5s
@@ -99,6 +123,9 @@ services:
       db:
         condition: service_healthy
         required: true
+      migrate:
+        condition: service_completed_successfully
+        required: true
       redis:
         condition: service_healthy
         required: true
@@ -125,6 +152,9 @@ services:
       db:
         condition: service_healthy
         required: true
+      migrate:
+        condition: service_completed_successfully
+        required: true
       redis:
         condition: service_healthy
         required: true
@@ -149,6 +179,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+        required: true
+      migrate:
+        condition: service_completed_successfully
         required: true
       redis:
         condition: service_healthy
