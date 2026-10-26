@@ -22,7 +22,8 @@ services:
     networks:
       default: null
     ports:
-      - mode: ingress
+      - host_ip: 127.0.0.1
+        mode: ingress
         protocol: tcp
         published: "8000"
         target: 8000
