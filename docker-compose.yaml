@@ -21,12 +21,7 @@ services:
     image: ghcr.io/mhm-forghani/weather-api:latest
     networks:
       default: null
-    ports:
-      - host_ip: 127.0.0.1
-        mode: ingress
-        protocol: tcp
-        published: "8000"
-        target: 8000
+    ports: []
     restart: unless-stopped
   beat:
     command:
@@ -90,6 +85,28 @@ services:
     networks:
       default: null
     restart: "no"
+  nginx:
+    depends_on:
+      app:
+        condition: service_started
+        required: true
+    image: nginx:alpine
+    networks:
+      default: null
+    ports:
+      - host_ip: 127.0.0.1
+        mode: ingress
+        protocol: tcp
+        published: "8080"
+        target: 80
+    restart: unless-stopped
+    volumes:
+      - bind:
+          create_host_path: true
+        read_only: true
+        source: ./nginx/nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+        type: bind
   redis:
     healthcheck:
       interval: 5s

@@ -194,3 +194,4 @@ docker compose --env-file .env.prod -f docker-compose.yaml -f docker-compose.pro
 دستور اول Imageهای به‌روز سرویس‌ها را دریافت می‌کند. دستور دوم سرویس‌ها را با Imageهای دریافت‌شده ایجاد یا به‌روزرسانی می‌کند.
 
 پس از به‌روزرسانی، وضعیت سرویس‌ها و لاگ‌ها را بررسی کنید.
+Nginx is used as a reverse proxy in the production deployment.
